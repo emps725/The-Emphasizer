@@ -1,7 +1,16 @@
 import dotenv from "dotenv";
 dotenv.config();
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-import { Client, GatewayIntentBits, EmbedBuilder } from "discord.js";
+import {
+  Client,
+  Collection,
+  GatewayIntentBits,
+  EmbedBuilder,
+  MessageFlags,
+} from "discord.js";
 
 const client = new Client({
   intents: [
@@ -12,6 +21,19 @@ const client = new Client({
     GatewayIntentBits.MessageContent,
   ],
 });
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+client.commands = new Collection();
+
+//Slash Commands (old, doesnt work)
+// client.on("interactionCreate", async (interaction) => {
+//   if (!interaction.isChatInputCommand()) return;
+//   if (interaction.commandName === "hi") {
+//     await interaction.deferReply("Hey there!");
+//   }
+// });
 
 //1
 //KEYS
@@ -36,6 +58,40 @@ client.on("messageCreate", (message) => {
   if (message.content.toLowerCase().includes("thanks emphasizer")) {
     message.reply("no problem bby");
   }
+});
+
+client.on("messageCreate", (message) => {
+  if (message.author.bot) return;
+
+  if (!message.content.startsWith(prefix + "clean")) return;
+
+  const parts = message.content.trim().split(/\s+/);
+
+  if (parts.length < 2) {
+    return message.reply("Give me a link bro");
+  }
+
+  let url;
+  try {
+    url = new URL(parts[1]);
+  } catch {
+    return message.reply("ts not a link bruh 🥀");
+  }
+
+  const host = url.hostname.replace(/^www\./, "");
+
+  const isYouTube =
+    host === "youtube.com" || host === "youtu.be" || host === "m.youtube.com";
+
+  if (!isYouTube) {
+    return message.reply("dumb ahh SEND A YOUTUBE LINK");
+  }
+
+  url.searchParams.delete("si");
+  return message.reply({
+    content: url.toString(),
+    flags: MessageFlags.SuppressEmbeds,
+  });
 });
 
 //3
@@ -70,7 +126,7 @@ client.on("messageCreate", async (message) => {
       }
     } else {
       message.channel.send(
-        "Invalid argument. Please provide a valid user mention or ID."
+        "Invalid argument. Please provide a valid user mention or ID.",
       );
       return;
     }
@@ -123,7 +179,7 @@ client.on("messageCreate", async (message) => {
           }
         : { name: "Joined on", value: "N/A", inline: true },
       { name: "\u200B", value: "\u200B", inline: true },
-      { name: "Account Age", value: `${days} days`, inline: true }
+      { name: "Account Age", value: `${days} days`, inline: true },
       // member
       //   ? {
       //       name: "",
