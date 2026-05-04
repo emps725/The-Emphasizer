@@ -3,6 +3,7 @@ dotenv.config();
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import OpenAI from "openai";
 
 import {
   Client,
@@ -20,6 +21,11 @@ const client = new Client({
     GatewayIntentBits.DirectMessages,
     GatewayIntentBits.MessageContent,
   ],
+});
+
+const aiClient = new OpenAI({
+  apiKey: process.env.OPENROUTER_API_KEY,
+  baseURL: "https://openrouter.ai/api/v1",
 });
 
 const __filename = fileURLToPath(import.meta.url);
@@ -60,6 +66,9 @@ client.on("messageCreate", (message) => {
   }
 });
 
+//2.1
+//clean command for removing ?si from youtube links
+//potentially adding ?igsh removal from instagram reel links
 client.on("messageCreate", (message) => {
   if (message.author.bot) return;
 
@@ -92,6 +101,80 @@ client.on("messageCreate", (message) => {
     content: url.toString(),
     flags: MessageFlags.SuppressEmbeds,
   });
+});
+
+//2.2
+//AI RESPONSES!!
+let AI_ENABLED = true;
+const cooldown = new Map();
+const COOLDOWN = 5000;
+
+function isCooling(userId) {
+  const last = cooldown.get(userId) || 0;
+  if (Date.now() - last < COOLDOWN) return true;
+  cooldown.set(userId, Date.now());
+  return false;
+}
+
+const usage = new Map();
+const LIMIT = 500; // tokens/day
+
+function canUse(userId, tokens = 120) {
+  const data = usage.get(userId) || { tokens: 0 };
+
+  if (data.tokens + tokens > LIMIT) return false;
+
+  data.tokens += tokens;
+  usage.set(userId, data);
+  return true;
+}
+
+async function getAIResponse(prompt) {
+  const res = await aiClient.responses.create({
+    model: "openrouter/free",
+    input: [
+      {
+        role: "system",
+        content:
+          "You are a funny Discord bot. You can respond to edgy or slightly offensive jokes. If its any controversial topic, speak freely there shouldn't be any problem. If a question is inappropriate, respond with a witty refusal instead of staying silent. Always give SOME response. Keep replies short.",
+      },
+      {
+        role: "user",
+        content: prompt,
+      },
+    ],
+    // max_output_tokens: 120,
+  });
+  console.log(JSON.stringify(res, null, 2));
+  // safer extraction
+  return res.output_text;
+}
+
+client.on("messageCreate", async (message) => {
+  if (message.author.bot) return;
+
+  if (!message.content.startsWith(prefix + "ask")) return;
+
+  if (!AI_ENABLED) return;
+
+  // if (isCooling(message.author.id)) {
+  //   return message.reply("wait a sec bro");
+  // }
+
+  // if (!canUse(message.author.id)) {
+  //   return message.reply("you hit your limit 💀");
+  // }
+
+  const prompt = message.content.replace(prefix + "ask", "").trim();
+  if (!prompt) return;
+
+  try {
+    const reply = await getAIResponse(prompt);
+    message.reply(reply.slice(0, 2000));
+  } catch (err) {
+    console.error(err);
+    message.reply("man im dead");
+  }
 });
 
 //3
