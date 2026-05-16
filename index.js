@@ -52,6 +52,8 @@ const slumpID = process.env.SLUMP_ID;
 const lockedInID = process.env.LOCKEDIN_ID;
 //DISCORD USER IDS
 const issyID = process.env.ISSY_ID;
+const vichuuID = process.env.VICHUU_ID;
+const empsID = process.env.EMPS_ID;
 
 //2
 //Global Commands
@@ -157,6 +159,11 @@ client.on("messageCreate", async (message) => {
   if (!message.content.startsWith(prefix + "ask")) return;
 
   if (!AI_ENABLED) return;
+
+  if (message.author.id === vichuuID) {
+    message.reply("I do no associate with 🥷s");
+    return;
+  }
 
   // if (isCooling(message.author.id)) {
   //   return message.reply("wait a sec bro");
