@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import OpenAI from "openai";
+import { generateWeatherRoll } from "./commands/weatherGame.js";
 
 import {
   Client,
@@ -173,7 +174,133 @@ client.on("messageCreate", async (message) => {
     message.reply(reply.slice(0, 2000));
   } catch (err) {
     console.error(err);
-    message.reply("man im dead");
+    message.reply("YOUR COMMANDS TIRE ME.");
+  }
+});
+
+//2.3
+//WEATHER ROULETTE
+const weatherEmojis = {
+  Clear: "☀️",
+  Clouds: "☁️",
+  Mist: "🌫️",
+  Fog: "🌫️",
+  Rain: "🌧️",
+  Drizzle: "🌦️",
+  Thunderstorm: "⛈️",
+  Snow: "❄️",
+  Smoke: "💨",
+  Dust: "🌪️",
+  Sand: "🏜️",
+  Ash: "🌋",
+  Squall: "🌬️",
+  Tornado: "🌪️",
+};
+
+function getScoreColor(score) {
+  if (score >= 250) return 0xff0000;
+  if (score >= 120) return 0xff8800;
+  if (score >= 60) return 0xffcc00;
+  if (score >= 20) return 0x66ccff;
+
+  return 0x999999;
+}
+
+function getFlavor(score) {
+  if (score <= 30) return "nothing much happening here";
+
+  if (score <= 40) return "mid ahh weather";
+
+  if (score <= 70) return "enough to find shelter";
+
+  if (score <= 120) return "damn";
+
+  if (score <= 250) return "how????";
+
+  return "explosive weather 9000";
+}
+
+function getMultiplierText(weather) {
+  const condition = weather.condition;
+  const temp = weather.temp;
+  const wind = weather.wind;
+  const visibility = weather.visibility;
+
+  const multipliers = [];
+
+  // Blizzard
+  if (condition === "Snow" && temp <= -15 && wind >= 40) {
+    multipliers.push("❄️ BLIZZARD x2.5");
+  }
+
+  // Apocalypse Storm
+  if (condition === "Thunderstorm" && wind >= 60 && visibility <= 2000) {
+    multipliers.push("⛈️ APOCALYPSE STORM x3");
+  }
+
+  // Heatwave
+  if (condition === "Clear" && temp >= 45) {
+    multipliers.push("🔥 HEATWAVE x1.8");
+  }
+
+  // Tornado
+  if (condition === "Tornado") {
+    multipliers.push("🌪️ TORNADO x4");
+  }
+
+  // Chaos Roll
+  if (weather.isChaos) {
+    multipliers.push("🌍 CHAOS BONUS x1.3");
+  }
+
+  if (multipliers.length === 0) {
+    return "No active multipliers";
+  }
+
+  return multipliers.join("\n");
+}
+
+client.on("messageCreate", async (message) => {
+  if (message.author.bot) return;
+  if (message.content === prefix + "weather") {
+    const result = await generateWeatherRoll();
+
+    const weather = result.chosen;
+
+    const emoji = weatherEmojis[weather.condition] || "🌍";
+
+    const embed = new EmbedBuilder()
+      .setTitle(`Weather Roulette`)
+      .setColor(getScoreColor(weather.score))
+
+      .setDescription(
+        `
+        ${weather.isChaos ? "🌍 **CHAOS ROLL**\n" : ""}
+        📍 **${weather.city}**
+        ${weather.lat}, ${weather.lon}
+        ${emoji} **${weather.condition}**
+        🌡️ Temperature: **${weather.temp}°C**
+        💨 Wind: **${weather.wind} km/h**
+        👁️ Visibility: **${weather.visibility}**
+
+        🎯 **FINAL SCORE: ${weather.score}**`,
+      )
+
+      .addFields({
+        name: "⚡ Active Multipliers",
+        value: getMultiplierText(weather),
+        inline: false,
+      })
+
+      .setFooter({
+        text: getFlavor(weather.score),
+      })
+
+      .setTimestamp();
+
+    await message.channel.send({
+      embeds: [embed],
+    });
   }
 });
 
