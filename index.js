@@ -160,10 +160,10 @@ client.on("messageCreate", async (message) => {
 
   if (!AI_ENABLED) return;
 
-  if (message.author.id === vichuuID) {
-    message.reply("I do no associate with 🥷s");
-    return;
-  }
+  // if (message.author.id === vichuuID) {
+  //   message.reply("I do no associate with 🥷s");
+  //   return;
+  // }
 
   // if (isCooling(message.author.id)) {
   //   return message.reply("wait a sec bro");
