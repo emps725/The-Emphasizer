@@ -418,9 +418,9 @@ client.on("messageCreate", (message) => {
   if (message.author.bot) return;
   if (message.guild?.id !== lockedInID) return;
   if (message.content.toLowerCase().includes("gay")) {
-    console.log("Triggered");
-    console.log(message.author.id);
-    message.reply("Vichuu gay af");
+    if (message.author.id === vichuuID) {
+      message.reply("Vichuu gay af");
+    }
   }
 });
 
@@ -433,12 +433,12 @@ client.on("messageCreate", (message) => {
   if (message.channel.name.toLowerCase() === "qotd") return;
 
   if (message.guild?.id !== slumpID) return;
-  if (!message.reference && message.mentions.users.has(issyID)) {
-    message.reply("sissy the faggot");
-  }
-  if (message.mentions.everyone) {
-    message.reply("WE ARE CHARLIE KIIIIRRRRK");
-  }
+  // if (!message.reference && message.mentions.users.has(issyID)) {
+  //   message.reply("sissy the faggot");
+  // }
+  // if (message.mentions.everyone) {
+  //   message.reply("WE ARE CHARLIE KIIIIRRRRK");
+  // }
   if (message.content.toLowerCase().includes("mortis")) {
     message.channel.send("mortise main");
   }
