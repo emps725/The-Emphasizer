@@ -252,7 +252,7 @@ function getMultiplierText(weather) {
 
   // Heatwave
   if (condition === "Clear" && temp >= 40) {
-    multipliers.push("🔥 HEATWAVE x1.8");
+    multipliers.push("🔥 HEATWAVE x1.6");
   }
 
   // Tornado
