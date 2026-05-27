@@ -94,13 +94,18 @@ function calculateScore(weatherData, isChaos) {
   }
 
   // Heatwave
-  if (condition === "Clear" && temp >= 45) {
-    score *= 1.8;
+  if (condition === "Clear" && temp >= 40) {
+    score *= 1.6;
+  }
+
+  // Silent Hill
+  if (wind >= 40 && visibility <= 2000) {
+    score *= 2.5;
   }
 
   // Storm combo
-  if (condition === "Thunderstorm" && wind >= 60) {
-    score *= 2;
+  if (condition === "Thunderstorm" && wind >= 60 && visibility <= 2000) {
+    score *= 3;
   }
 
   // tornado

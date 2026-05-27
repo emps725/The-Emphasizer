@@ -245,8 +245,13 @@ function getMultiplierText(weather) {
     multipliers.push("⛈️ APOCALYPSE STORM x3");
   }
 
+  // Silent Hill
+  if (wind >= 40 && visibility <= 2000) {
+    multipliers.push("🤫 SILENT HILL x2.5");
+  }
+
   // Heatwave
-  if (condition === "Clear" && temp >= 45) {
+  if (condition === "Clear" && temp >= 40) {
     multipliers.push("🔥 HEATWAVE x1.8");
   }
 
